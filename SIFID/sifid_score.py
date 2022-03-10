@@ -242,8 +242,7 @@ def calculate_sifid_given_paths(path1, path2, batch_size, cuda, dims, suffix):
         fid_values.append(calculate_frechet_distance(m1, s1, m2, s2))
         file_num1 = files1[i].name
         file_num2 = files2[i].name
-        Im_ind.append(int(file_num1[:-4]))
-        Im_ind.append(int(file_num2[:-4]))
+        Im_ind.extend((int(file_num1[:-4]), int(file_num2[:-4])))
     return fid_values
 
 

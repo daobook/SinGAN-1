@@ -20,8 +20,6 @@ if __name__ == '__main__':
     dir2save = functions.generate_dir2save(opt)
     if dir2save is None:
         print('task does not exist')
-    #elif (os.path.exists(dir2save)):
-    #    print("output already exist")
     else:
         try:
             os.makedirs(dir2save)
@@ -36,14 +34,13 @@ if __name__ == '__main__':
         dir2trained_model = functions.generate_dir2save(opt)
         if (os.path.exists(dir2trained_model)):
             Gs, Zs, reals, NoiseAmp = functions.load_trained_pyramid(opt)
-            opt.mode = mode
         else:
             print('*** Train SinGAN for SR ***')
             real = functions.read_image(opt)
             opt.min_size = 18
             real = functions.adjust_scales2image_SR(real, opt)
             train(opt, Gs, Zs, reals, NoiseAmp)
-            opt.mode = mode
+        opt.mode = mode
         print('%f' % pow(in_scale, iter_num))
         Zs_sr = []
         reals_sr = []
@@ -53,7 +50,7 @@ if __name__ == '__main__':
         real_ = real
         opt.scale_factor = 1 / in_scale
         opt.scale_factor_init = 1 / in_scale
-        for j in range(1, iter_num + 1, 1):
+        for _ in range(1, iter_num + 1):
             real_ = imresize(real_, pow(1 / opt.scale_factor, 1), opt)
             reals_sr.append(real_)
             Gs_sr.append(Gs[-1])

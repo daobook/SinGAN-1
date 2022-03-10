@@ -30,15 +30,14 @@ if __name__ == '__main__':
         dir2trained_model = functions.generate_dir2save(opt)
         if (os.path.exists(dir2trained_model)):
             Gs, Zs, reals, NoiseAmp = functions.load_trained_pyramid(opt)
-            opt.mode = 'animation'
         else:
             train(opt, Gs, Zs, reals, NoiseAmp)
-            opt.mode = 'animation'
+        opt.mode = 'animation'
         try:
             os.makedirs(dir2save)
         except OSError:
             pass
-        for start_scale in range(0, 3, 1):
+        for start_scale in range(3):
             for b in range(80, 100, 5):
                 #opt.animation_start_scale = start_scale
                 #opt.beta_animation = b / 100

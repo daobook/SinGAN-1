@@ -24,8 +24,6 @@ if __name__ == '__main__':
     dir2save = functions.generate_dir2save(opt)
     if dir2save is None:
         print('task does not exist')
-    #elif (os.path.exists(dir2save)):
-    #    print("output already exist")
     else:
         try:
             os.makedirs(dir2save)
@@ -67,10 +65,9 @@ if __name__ == '__main__':
                 if (os.path.exists(dir2trained_model)):
                     # print('Trained model does not exist, training SinGAN for SR')
                     Gs, Zs, reals, NoiseAmp = functions.load_trained_pyramid(opt)
-                    opt.mode = 'paint2image'
                 else:
                     train_paint(opt, Gs, Zs, reals, NoiseAmp, centers, opt.paint_start_scale)
-                    opt.mode = 'paint2image'
+                opt.mode = 'paint2image'
             out = SinGAN_generate(Gs[n:], Zs[n:], reals, NoiseAmp[n:], opt, in_s, n=n, num_samples=1)
             plt.imsave('%s/start_scale=%d.png' % (dir2save, opt.paint_start_scale), functions.convert_image_np(out.detach()), vmin=0, vmax=1)
 

@@ -142,9 +142,7 @@ def calc_gradient_penalty(netD, real_data, fake_data, LAMBDA, device):
                               grad_outputs=torch.ones(disc_interpolates.size()).to(device),#.cuda(), #if use_cuda else torch.ones(
                                   #disc_interpolates.size()),
                               create_graph=True, retain_graph=True, only_inputs=True)[0]
-    #LAMBDA = 1
-    gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * LAMBDA
-    return gradient_penalty
+    return ((gradients.norm(2, dim=1) - 1) ** 2).mean() * LAMBDA
 
 def read_image(opt):
     x = img.imread('%s/%s' % (opt.input_dir,opt.input_name))
@@ -169,7 +167,12 @@ def np2torch(x,opt):
     x = torch.from_numpy(x)
     if not(opt.not_cuda):
         x = move_to_gpu(x)
-    x = x.type(torch.cuda.FloatTensor) if not(opt.not_cuda) else x.type(torch.FloatTensor)
+    x = (
+        x.type(torch.FloatTensor)
+        if opt.not_cuda
+        else x.type(torch.cuda.FloatTensor)
+    )
+
     #x = x.type(torch.FloatTensor)
     x = norm(x)
     return x
@@ -220,7 +223,7 @@ def adjust_scales2image_SR(real_,opt):
 
 def creat_reals_pyramid(real,reals,opt):
     real = real[:,0:3,:,:]
-    for i in range(0,opt.stop_scale+1,1):
+    for i in range(opt.stop_scale+1):
         scale = math.pow(opt.scale_factor,opt.stop_scale-i)
         curr_real = imresize(real,scale,opt)
         reals.append(curr_real)
@@ -247,11 +250,11 @@ def load_trained_pyramid(opt, mode_='train'):
 def generate_in2coarsest(reals,scale_v,scale_h,opt):
     real = reals[opt.gen_start_scale]
     real_down = upsampling(real, scale_v * real.shape[2], scale_h * real.shape[3])
-    if opt.gen_start_scale == 0:
-        in_s = torch.full(real_down.shape, 0, device=opt.device)
-    else: #if n!=0
-        in_s = upsampling(real_down, real_down.shape[2], real_down.shape[3])
-    return in_s
+    return (
+        torch.full(real_down.shape, 0, device=opt.device)
+        if opt.gen_start_scale == 0
+        else upsampling(real_down, real_down.shape[2], real_down.shape[3])
+    )
 
 def generate_dir2save(opt):
     dir2save = None
@@ -331,8 +334,6 @@ def quant2centers(paint, centers):
     #x = x.type(torch.cuda.FloatTensor)
     x = x.view(paint.shape)
     return x
-
-    return paint
 
 
 def dilate_mask(mask,opt):

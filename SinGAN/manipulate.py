@@ -24,27 +24,23 @@ def generate_gif(Gs,Zs,reals,NoiseAmp,opt,alpha=0.1,beta=0.9,start_scale=2,fps=1
 
     in_s = torch.full(Zs[0].shape, 0, device=opt.device)
     images_cur = []
-    count = 0
-
-    for G,Z_opt,noise_amp,real in zip(Gs,Zs,NoiseAmp,reals):
+    for count, (G, Z_opt, noise_amp, real) in enumerate(zip(Gs,Zs,NoiseAmp,reals)):
         pad_image = int(((opt.ker_size - 1) * opt.num_layer) / 2)
         nzx = Z_opt.shape[2]
         nzy = Z_opt.shape[3]
         #pad_noise = 0
         #m_noise = nn.ZeroPad2d(int(pad_noise))
-        m_image = nn.ZeroPad2d(int(pad_image))
+        m_image = nn.ZeroPad2d(pad_image)
         images_prev = images_cur
         images_cur = []
         if count == 0:
             z_rand = functions.generate_noise([1,nzx,nzy], device=opt.device)
             z_rand = z_rand.expand(1,3,Z_opt.shape[2],Z_opt.shape[3])
             z_prev1 = 0.95*Z_opt +0.05*z_rand
-            z_prev2 = Z_opt
         else:
             z_prev1 = 0.95*Z_opt +0.05*functions.generate_noise([opt.nc_z,nzx,nzy], device=opt.device)
-            z_prev2 = Z_opt
-
-        for i in range(0,100,1):
+        z_prev2 = Z_opt
+        for i in range(100):
             if count == 0:
                 z_rand = functions.generate_noise([1,nzx,nzy], device=opt.device)
                 z_rand = z_rand.expand(1,3,Z_opt.shape[2],Z_opt.shape[3])
@@ -77,7 +73,6 @@ def generate_gif(Gs,Zs,reals,NoiseAmp,opt,alpha=0.1,beta=0.9,start_scale=2,fps=1
                 I_curr = I_curr.astype(np.uint8)
 
             images_cur.append(I_curr)
-        count += 1
     dir2save = functions.generate_dir2save(opt)
     try:
         os.makedirs('%s/start_scale=%d' % (dir2save,start_scale) )
@@ -100,15 +95,13 @@ def SinGAN_generate(Gs,Zs,reals,NoiseAmp,opt,in_s=None,scale_v=1,scale_h=1,n=0,g
         images_prev = images_cur
         images_cur = []
 
-        for i in range(0,num_samples,1):
+        for i in range(num_samples):
             if n == 0:
                 z_curr = functions.generate_noise([1,nzx,nzy], device=opt.device)
                 z_curr = z_curr.expand(1,3,z_curr.shape[2],z_curr.shape[3])
-                z_curr = m(z_curr)
             else:
                 z_curr = functions.generate_noise([opt.nc_z,nzx,nzy], device=opt.device)
-                z_curr = m(z_curr)
-
+            z_curr = m(z_curr)
             if images_prev == []:
                 I_prev = m(in_s)
                 #I_prev = m(I_prev)

@@ -32,7 +32,12 @@ def np2torch(x,opt):
     x = torch.from_numpy(x)
     if not (opt.not_cuda):
         x = move_to_gpu(x)
-    x = x.type(torch.cuda.FloatTensor) if not(opt.not_cuda) else x.type(torch.FloatTensor)
+    x = (
+        x.type(torch.FloatTensor)
+        if opt.not_cuda
+        else x.type(torch.cuda.FloatTensor)
+    )
+
     #x = x.type(torch.cuda.FloatTensor)
     x = norm(x)
     return x
@@ -263,8 +268,9 @@ def cubic(x):
     absx = np.abs(x)
     absx2 = absx ** 2
     absx3 = absx ** 3
-    return ((1.5*absx3 - 2.5*absx2 + 1) * (absx <= 1) +
-            (-0.5*absx3 + 2.5*absx2 - 4*absx + 2) * ((1 < absx) & (absx <= 2)))
+    return (1.5 * absx3 - 2.5 * absx2 + 1) * (absx <= 1) + (
+        -0.5 * absx3 + 2.5 * absx2 - 4 * absx + 2
+    ) * ((absx > 1) & (absx <= 2))
 
 
 def lanczos2(x):
@@ -274,7 +280,7 @@ def lanczos2(x):
 
 
 def box(x):
-    return ((-0.5 <= x) & (x < 0.5)) * 1.0
+    return ((x >= -0.5) & (x < 0.5)) * 1.0
 
 
 def lanczos3(x):
@@ -284,4 +290,4 @@ def lanczos3(x):
 
 
 def linear(x):
-    return (x + 1) * ((-1 <= x) & (x < 0)) + (1 - x) * ((0 <= x) & (x <= 1))
+    return (x + 1) * ((x >= -1) & (x < 0)) + (1 - x) * ((x >= 0) & (x <= 1))
